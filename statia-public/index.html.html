@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Statia — Résidanat Algérie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--paper:#F5F2EC;--paper2:#EFEBE2;--card:#fff;--ink:#1C1A17;--soft:#57534C;--faint:#9A958B;--line:#DBD5C9;--green:#3F6B54;--green-d:#2d4e3c;--gs:#E4EBE5;--gold:#A8743A;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+.app{max-width:560px;margin:0 auto;min-height:100vh;background:var(--paper);box-shadow:0 0 60px -30px rgba(0,0,0,.2);padding-bottom:48px;position:relative;}
+
+/* top accent line */
+.app::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--gold));}
+
+/* WATERMARK */
+.wm{position:fixed;top:0;left:50%;transform:translateX(-50%);width:560px;height:100vh;pointer-events:none;z-index:9999;overflow:hidden;}
+.wm::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Ctext x='90' y='90' text-anchor='middle' dominant-baseline='middle' font-family='serif' font-size='14' fill='rgba(63,107,84,0.07)' transform='rotate(-30 90 90)'%3EStatia.dz%3C/text%3E%3C/svg%3E");background-repeat:repeat;}
+
+.topbar{padding:22px 20px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.brand{font-family:'Fraunces',serif;font-weight:600;font-size:21px;letter-spacing:-.02em;}
+.brand span{color:var(--green);}
+
+/* FACULTY DROPDOWN */
+.fac-wrap{position:relative;}
+.fac-select{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;transition:.15s;}
+.fac-select:hover{border-color:var(--green);}
+.fac-select .lbl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;}
+.fac-select .val{font-weight:600;font-size:13.5px;line-height:1.1;}
+.fac-select .chev{color:var(--soft);font-size:10px;transition:.2s;}
+.fac-select.open .chev{transform:rotate(180deg);}
+.fac-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px -10px rgba(0,0,0,.25);min-width:170px;overflow:hidden;z-index:50;}
+.fac-menu.show{display:block;animation:fd .16s ease;}
+.fac-opt{padding:10px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:.12s;display:flex;align-items:center;justify-content:space-between;}
+.fac-opt:hover{background:var(--paper2);}
+.fac-opt.sel{color:var(--green);font-weight:700;}
+.fac-opt.sel::after{content:"✓";font-size:11px;}
+
+/* CATEGORY */
+.cat-row{display:flex;gap:6px;padding:14px 20px 0;overflow-x:auto;}
+.cat-row::-webkit-scrollbar{height:0;}
+.cbtn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:6px 13px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--soft);cursor:pointer;transition:.15s;white-space:nowrap;}
+.cbtn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* TABS */
+.tabs{display:flex;padding:14px 20px 0;border-bottom:1px solid var(--line);}
+.tab{flex:1;text-align:center;padding:10px 4px;font-size:13px;font-weight:500;color:var(--soft);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:.18s;margin-bottom:-1px;font-family:'Inter';}
+.tab.active{color:var(--ink);border-bottom-color:var(--green);font-weight:600;}
+
+/* SCREENS */
+.screen{display:none;}
+.screen.active{display:block;animation:fd .22s ease;}
+@keyframes fd{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* YEAR CHIPS */
+.years{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;}
+.years::-webkit-scrollbar{height:0;}
+.ychip{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:6px 12px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--soft);cursor:pointer;transition:.15s;white-space:nowrap;}
+.ychip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.ychip.global.active{background:var(--green);border-color:var(--green);}
+
+/* SEGMENT */
+.seg{display:flex;background:var(--paper2);border-radius:9px;padding:3px;border:1px solid var(--line);}
+.seg button{border:none;background:transparent;font-family:'Inter';font-size:12.5px;font-weight:500;color:var(--soft);padding:6px 14px;border-radius:7px;cursor:pointer;transition:.15s;}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.07);}
+
+/* SEARCH */
+.search-wrap{position:relative;}
+.search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:11px;font-family:'Inter';font-size:13.5px;background:var(--card);color:var(--ink);outline:none;transition:border .15s;}
+.search-wrap input:focus{border-color:var(--green);}
+.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--soft);font-size:15px;pointer-events:none;}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.tbl thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--soft);font-weight:500;padding:10px 12px;background:var(--paper2);border-bottom:1px solid var(--line);text-align:left;}
+.tbl th.r,.tbl td.r{text-align:right;}
+.tbl tbody td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--line);}
+.tbl tbody tr:last-child td{border-bottom:none;}
+.tbl tbody tr{cursor:pointer;transition:background .1s;}
+.tbl tbody tr:hover td{background:#f8f6f1;}
+.tbl tbody tr.sel td{background:var(--gs);}
+.tbl tbody tr.top3 td:first-child{border-left:3px solid var(--gold);}
+.rank{display:inline-block;width:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);}
+.rank.g{color:var(--gold);font-weight:700;}
+.mn{font-weight:500;}
+.mp{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;}
+.mp.hot{color:var(--gold);}
+.rg{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--soft);}
+.no-res{padding:28px;text-align:center;color:var(--soft);font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;}
+
+/* BACK BTN */
+.back-btn{display:flex;align-items:center;gap:7px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--green);font-family:'Inter';font-weight:500;padding:0;}
+.back-btn:hover{opacity:.75;}
+
+/* NOTE */
+.note{background:var(--gs);border-radius:11px;padding:11px 14px;font-size:13px;color:#2f5040;display:flex;gap:10px;}
+.note b{color:var(--green);}
+
+/* ===== PLANNER ===== */
+.pmod-list{display:flex;flex-direction:column;gap:8px;}
+.pmod-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .1s, transform .1s;}
+.pmod-item:hover{background:#f8f6f1;transform:translateX(1px);}
+.pmod-name{font-size:14px;font-weight:500;}
+.pmod-meta{display:flex;align-items:center;gap:8px;}
+.pmod-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--soft);}
+.pmod-freq{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--gold);}
+.pmod-arrow{color:var(--soft);font-size:14px;}
+
+/* ADD COURSE BAR */
+.add-bar{display:flex;gap:8px;align-items:center;}
+.add-bar input{flex:1;padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-family:'Inter';font-size:13.5px;outline:none;background:var(--card);transition:border .15s;}
+.add-bar input:focus{border-color:var(--green);}
+.add-btn{flex-shrink:0;width:38px;height:38px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.add-btn:hover{background:var(--green-d);}
+.added-badge{display:inline-block;font-size:9.5px;background:#F3E2CE;color:var(--gold);padding:1px 6px;border-radius:5px;margin-left:6px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;vertical-align:middle;}
+.del-course{border:none;background:none;color:var(--faint);font-size:15px;cursor:pointer;padding:2px 4px;flex-shrink:0;transition:.15s;}
+.del-course:hover{color:#9A4422;}
+
+/* COURSE CARDS */
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.sr-toggle{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--soft);cursor:pointer;user-select:none;}
+.switch{width:36px;height:20px;background:var(--line);border-radius:12px;position:relative;transition:.2s;flex-shrink:0;}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.18);}
+.switch.on{background:var(--green);}
+.switch.on::after{transform:translateX(16px);}
+.drag-hint{display:none;align-items:center;gap:8px;padding:9px 12px;background:var(--gs);border-radius:10px;font-size:12.5px;color:#2f5040;}
+.drag-hint.show{display:flex;}
+.course{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:9px;transition:box-shadow .15s,opacity .15s;}
+.course.dragging{opacity:.4;}
+.course.dragover{box-shadow:0 0 0 2px var(--green);}
+.c-top{display:flex;align-items:flex-start;gap:10px;}
+.handle{cursor:grab;color:var(--green);font-size:17px;flex-shrink:0;display:none;align-items:center;align-self:center;}
+.reorder-mode .handle{display:flex;}
+.c-titlewrap{flex:1;min-width:0;}
+.c-title{font-size:14px;font-weight:600;color:var(--green);}
+.c-module{font-size:11px;color:var(--soft);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.c-freq{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);background:#F6EADB;padding:3px 8px;border-radius:7px;}
+.couches{margin-top:11px;display:flex;flex-direction:column;gap:1px;}
+.couche{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #F0ECE3;}
+.couche:first-child{border-top:none;}
+.cdot{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--faint);transition:.15s;}
+.cdot.done{background:var(--green);border-color:var(--green);color:#fff;}
+.cdot.due{border-color:var(--green);border-style:dashed;color:var(--green);}
+.clabel{flex:1;min-width:0;font-size:12.5px;}
+.cdone-info{color:var(--soft);}
+.cdate{font-family:'IBM Plex Mono',monospace;font-size:11px;}
+.csupport{display:inline-block;font-size:10px;background:var(--gs);color:var(--green);padding:1px 6px;border-radius:5px;margin-left:4px;font-weight:500;}
+.cfuture{color:var(--faint);}
+.cdue-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);}
+.cdue-date.reveal{animation:dueR .55s ease both;}
+@keyframes dueR{0%{opacity:0;transform:translateX(-6px);}100%{opacity:1;transform:none;}}
+.couche.pulse{animation:dueP 1.1s ease 1;border-radius:8px;}
+@keyframes dueP{0%,100%{background:transparent;}40%{background:var(--gs);}}
+.crevise{border:none;background:var(--green);color:#fff;font-family:'Inter';font-size:11.5px;font-weight:500;padding:5px 11px;border-radius:7px;cursor:pointer;flex-shrink:0;}
+.picker{margin-top:8px;background:var(--paper2);border-radius:10px;padding:10px 12px;display:none;}
+.picker.show{display:block;animation:fd .2s;}
+.picker-q{font-size:13px;font-weight:600;margin-bottom:8px;}
+.picker-opts{display:flex;gap:7px;}
+.picker-opts button{flex:1;border:1px solid var(--line);background:var(--card);font-family:'Inter';font-size:12px;font-weight:500;color:var(--ink);padding:8px 4px;border-radius:8px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.picker-opts button:hover{border-color:var(--green);color:var(--green);}
+.pic-ic{font-size:14px;}
+.done-badge{margin-top:9px;font-size:12px;color:var(--green);font-weight:500;}
+.legend-txt{font-size:12px;color:var(--soft);line-height:1.7;}
+.legend-txt b{color:var(--ink);}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(28,26,23,.45);z-index:200;align-items:center;justify-content:center;padding:24px;}
+.modal-bg.show{display:flex;animation:fd .2s;}
+.modal{background:var(--card);border-radius:18px;max-width:360px;width:100%;padding:26px 22px 22px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.4);}
+.modal-emoji{font-size:34px;margin-bottom:10px;}
+.modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:10px;}
+.modal-body{font-size:13px;color:var(--soft);line-height:1.6;margin-bottom:10px;text-align:left;}
+.modal-body b{color:var(--ink);}
+.modal-btn{width:100%;background:var(--ink);color:var(--paper);border:none;font-family:'Inter';font-size:14px;font-weight:500;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;}
+
+.pad{padding:18px 20px;}
+.gap-12{display:flex;flex-direction:column;gap:12px;}
+.foot{text-align:center;font-size:11px;color:var(--soft);padding:6px 20px 20px;font-family:'IBM Plex Mono',monospace;}
+.sticky-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:560px;background:var(--green);color:#fff;text-align:center;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.05em;z-index:1000;border-top:2px solid var(--green-d);}
+.foot strong{color:var(--green);}
+mark{background:#FFF3CD;border-radius:3px;padding:0 2px;}
+
+/* ===== LOCK / TEASER SYSTEM ===== */
+.unlock-btn{display:flex;align-items:center;gap:6px;background:var(--gold);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;padding:7px 13px;border-radius:9px;border:none;cursor:pointer;white-space:nowrap;}
+.unlock-btn.unlocked{background:var(--green);}
+.blur-val{filter:blur(5px);user-select:none;transition:filter .2s;}
+tr.locked-row{cursor:pointer;}
+tr.locked-row:hover .blur-val{filter:blur(4px);}
+.lock-ico{font-size:11px;margin-left:4px;color:var(--gold);}
+.pmod-item.locked{cursor:pointer;}
+.pmod-item.locked .pmod-freq{filter:blur(4px);}
+
+.code-modal-bg{display:none;position:fixed;inset:0;background:rgba(28,26,23,.55);z-index:300;align-items:center;justify-content:center;padding:24px;}
+.code-modal-bg.show{display:flex;animation:fd .2s;}
+.code-modal{background:var(--card);border-radius:18px;max-width:360px;width:100%;padding:28px 24px 24px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.4);position:relative;}
+.code-modal .ic{font-size:36px;margin-bottom:8px;}
+.code-modal h3{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:8px;}
+.code-modal p{font-size:13px;color:var(--soft);line-height:1.6;margin-bottom:16px;}
+.code-modal input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;text-align:center;letter-spacing:1px;text-transform:uppercase;outline:none;margin-bottom:10px;}
+.code-modal input:focus{border-color:var(--green);}
+.code-modal .err{font-size:12px;color:#B33;margin-bottom:8px;display:none;}
+.code-modal .err.show{display:block;}
+.code-modal button.submit{width:100%;background:var(--ink);color:var(--paper);border:none;font-family:'Inter';font-size:14px;font-weight:600;padding:12px;border-radius:10px;cursor:pointer;margin-bottom:8px;}
+.code-modal .buy-link{font-size:12.5px;color:var(--green);font-weight:600;cursor:pointer;text-decoration:underline;}
+.code-modal .close-x{position:absolute;top:14px;right:18px;background:none;border:none;font-size:18px;color:var(--soft);cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wm"></div>
+<div class="sticky-bar">📊 Statia.dz — إحصائيات امتحان الإقامة الجزائري</div>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">Statia<span>.</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="unlock-btn" id="unlockBtn">🔒 Débloquer</button>
+      <div class="fac-wrap">
+        <div class="fac-select" id="facSelect">
+          <div><div class="lbl">Faculté</div><div class="val" id="facVal">—</div></div>
+          <div class="chev">▾</div>
+        </div>
+        <div class="fac-menu" id="facMenu"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat-row" id="cats">
+    <button class="cbtn active" data-cat="Tous">Tous</button>
+    <button class="cbtn" data-cat="Biologie">Biologie</button>
+    <button class="cbtn" data-cat="MedicoChirurgical">Médico-Chirurgical</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-s="stats">Statistiques</button>
+    <button class="tab" data-s="plan">Planificateur</button>
+  </div>
+
+  <!-- ===== STATS ===== -->
+  <section class="screen active" id="stats">
+    <div class="pad gap-12">
+      <div class="years" id="years"></div>
+      <div class="seg" id="viewSeg">
+        <button class="on" data-v="modules">Modules</button>
+        <button data-v="cours">Cours par module</button>
+      </div>
+      <div class="search-wrap">
+        <span class="search-ico">🔍</span>
+        <input type="text" id="searchInput" placeholder="Rechercher..."/>
+      </div>
+      <div id="statsContent"></div>
+    </div>
+  </section>
+
+  <!-- ===== PLAN ===== -->
+  <section class="screen" id="plan">
+    <div class="pad gap-12" id="planContent"></div>
+  </section>
+
+  <div class="foot">© <strong>Statia.dz</strong> · Algérie 2016–2025 · Reproduction interdite</div>
+</div>
+
+<div class="modal-bg" id="srModal">
+  <div class="modal">
+    <div class="modal-emoji">🧠</div>
+    <div class="modal-title">La répétition espacée</div>
+    <p class="modal-body">Ton cerveau oublie vite. Si tu révises à intervalles croissants — <b>aujourd'hui, 3 jours, 1 semaine, 1 mois</b> — le cours s'ancre durablement.</p>
+    <p class="modal-body">Statia calcule ces dates pour toi. Tu révises, tu coches, l'app te dit quand revenir.</p>
+    <button class="modal-btn" id="srOk">J'ai compris</button>
+  </div>
+</div>
+
+<div class="code-modal-bg" id="codeModal">
+  <div class="code-modal">
+    <button class="close-x" id="codeModalClose">✕</button>
+    <div class="ic">🔓</div>
+    <h3>Débloque l'accès complet</h3>
+    <p>Un seul module est visible gratuitement. Entre ton code d'accès pour débloquer <b>tous les modules et tous les cours</b>, pour toutes les facultés, pendant 1 an.</p>
+    <input type="text" id="codeInput" placeholder="STATIA-XXXX" maxlength="20"/>
+    <div class="err" id="codeErr">Code invalide. Vérifie et réessaie.</div>
+    <button class="submit" id="codeSubmit">Valider le code</button>
+    <div class="buy-link" id="buyLink">Pas encore de code ? Comment l'obtenir →</div>
+  </div>
+</div>
+
+<script>
+const INTERVALS=[3,7,30,90];
+let ALL=[], CODES=[], currentCat='Tous', currentYear='global', currentFaculte='Toutes';
+let statsView='modules', statsSelectedMod=null;
+let planView='modules', planSelectedMod=null;
+let planCourses={}, srOn=true, sortMode='freq', justRevised=null, srExplained=false;
+let UNLOCKED = localStorage.getItem('statia_unlocked')==='1';
+let CLOSED_FACS = [];
+
+fetch('statia_data.json')
+  .then(r=>r.json())
+  .then(d=>{ALL=d;init();})
+  .catch(()=>document.querySelector('.app').innerHTML='<p style="padding:40px;font-family:monospace;color:#999">Erreur de chargement.</p>');
+
+fetch('codes.json').then(r=>r.json()).then(d=>{CODES=d;}).catch(()=>{CODES=[];});
+
+function fetchClosedFacs(){
+  return fetch('closed_facs.json?_='+Date.now())
+    .then(r=>r.json())
+    .then(d=>{CLOSED_FACS=d.map(f=>normFac(f));})
+    .catch(()=>{CLOSED_FACS=[];});
+}
+function isFacClosed(fac){
+  return CLOSED_FACS.includes(normFac(fac));
+}
+
+// ── helpers ──
+function normFac(f){
+  if(!f) return '';
+  const t=String(f).trim().toLowerCase();
+  return t.charAt(0).toUpperCase()+t.slice(1);
+}
+function getExamens(cat){
+  let ex = ALL.filter(e=>!isFacClosed(e.faculte));
+  if(currentFaculte!=='Toutes') ex = ex.filter(e=>normFac(e.faculte)===currentFaculte);
+  if(cat==='Tous') return ex;
+  if(cat==='MedicoChirurgical') return ex.filter(e=>e.categorie==='Medical'||e.categorie==='Chirurgical');
+  return ex.filter(e=>e.categorie===cat);
+}
+function getClassifs(cat,year){
+  let ex=getExamens(cat);
+  if(year!=='global') ex=ex.filter(e=>String(e.annee)===String(year));
+  return ex.flatMap(e=>e.classifications||[]);
+}
+function calcMods(classifs){
+  const total=classifs.length||1, mods={};
+  classifs.forEach(c=>{if(c.module) mods[c.module]=(mods[c.module]||0)+1;});
+  return Object.entries(mods).map(([m,n])=>({m,n,pct:((n/total)*100).toFixed(1)})).sort((a,b)=>b.n-a.n);
+}
+function calcCoursForMod(classifs,mod){
+  const total=classifs.length||1, counts={};
+  classifs.filter(c=>c.module===mod&&c.cours&&c.cours!=='non identifié')
+    .forEach(c=>{counts[c.cours]=(counts[c.cours]||0)+1;});
+  return Object.entries(counts).map(([c,n])=>({c,n,pct:((n/total)*100).toFixed(1)})).sort((a,b)=>b.n-a.n);
+}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function fmt(d){return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});}
+function hl(t,q){
+  if(!q)return t;
+  const i=t.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return t;
+  return t.slice(0,i)+`<mark>${t.slice(i,i+q.length)}</mark>`+t.slice(i+q.length);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── init ──
+async function init(){
+  await fetchClosedFacs();
+  const facs=[...new Set(ALL.map(e=>normFac(e.faculte)))].filter(Boolean).sort();
+  currentFaculte = facs.length===1 ? facs[0] : 'Toutes';
+  document.getElementById('facVal').textContent = currentFaculte==='Toutes' ? 'Toutes facultés' : currentFaculte;
+
+  let menuHtml='';
+  menuHtml+=`<div class="fac-opt ${currentFaculte==='Toutes'?'sel':''}" data-f="Toutes">Toutes facultés</div>`;
+  facs.forEach(f=>menuHtml+=`<div class="fac-opt ${currentFaculte===f?'sel':''}" data-f="${f}">${f}${isFacClosed(f)?' 🔒':''}</div>`);
+  document.getElementById('facMenu').innerHTML=menuHtml;
+
+  const facSelect=document.getElementById('facSelect');
+  const facMenu=document.getElementById('facMenu');
+  facSelect.addEventListener('click',e=>{
+    e.stopPropagation();
+    facMenu.classList.toggle('show');
+    facSelect.classList.toggle('open');
+  });
+  facMenu.addEventListener('click',async e=>{
+    const o=e.target.closest('.fac-opt'); if(!o) return;
+    currentFaculte=o.dataset.f;
+    document.getElementById('facVal').textContent = currentFaculte==='Toutes' ? 'Toutes facultés' : currentFaculte;
+    facMenu.querySelectorAll('.fac-opt').forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel');
+    facMenu.classList.remove('show'); facSelect.classList.remove('open');
+    statsSelectedMod=null; planSelectedMod=null; currentYear='global';
+    document.getElementById('searchInput').value='';
+    await fetchClosedFacs();
+    rebuildYearChips(); renderStats(); renderPlanModules();
+  });
+  document.addEventListener('click',()=>{facMenu.classList.remove('show');facSelect.classList.remove('open');});
+
+  rebuildYearChips();
+
+  document.getElementById('cats').addEventListener('click',e=>{
+    const b=e.target.closest('.cbtn');if(!b)return;
+    document.querySelectorAll('.cbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); currentCat=b.dataset.cat;
+    statsSelectedMod=null; planSelectedMod=null;
+    currentYear='global';
+    document.querySelectorAll('.ychip').forEach(x=>x.classList.remove('active'));
+    document.querySelector('.ychip.global')?.classList.add('active');
+    document.getElementById('searchInput').value='';
+    renderStats(); renderPlanModules();
+  });
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab,.screen').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); document.getElementById(t.dataset.s).classList.add('active');
+  }));
+  document.getElementById('viewSeg').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    document.querySelectorAll('#viewSeg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); statsView=b.dataset.v; statsSelectedMod=null;
+    document.getElementById('searchInput').value=''; renderStats();
+  });
+  document.getElementById('searchInput').addEventListener('input',renderStats);
+  document.getElementById('srOk').addEventListener('click',()=>document.getElementById('srModal').classList.remove('show'));
+  document.getElementById('srModal').addEventListener('click',e=>{if(e.target.id==='srModal')document.getElementById('srModal').classList.remove('show');});
+
+  initUnlockSystem();
+  renderStats();
+  renderPlanModules();
+}
+
+function rebuildYearChips(){
+  const facFiltered = currentFaculte==='Toutes' ? ALL : ALL.filter(e=>normFac(e.faculte)===currentFaculte);
+  const years=[...new Set(facFiltered.map(e=>String(e.annee)))].sort((a,b)=>b-a);
+  let chips=`<button class="ychip global active" data-y="global">Global</button>`;
+  years.forEach(y=>chips+=`<button class="ychip" data-y="${y}">${y}</button>`);
+  document.getElementById('years').innerHTML=chips;
+  document.getElementById('years').onclick=e=>{
+    const c=e.target.closest('.ychip');if(!c)return;
+    document.querySelectorAll('.ychip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active'); currentYear=c.dataset.y;
+    statsSelectedMod=null; renderStats();
+  };
+}
+
+// ══════════════════════════════════
+//  UNLOCK SYSTEM
+// ══════════════════════════════════
+function initUnlockSystem(){
+  updateUnlockBtn();
+  document.getElementById('unlockBtn').addEventListener('click',openCodeModal);
+  document.getElementById('codeModalClose').addEventListener('click',closeCodeModal);
+  document.getElementById('codeModal').addEventListener('click',e=>{if(e.target.id==='codeModal')closeCodeModal();});
+  document.getElementById('codeSubmit').addEventListener('click',submitCode);
+  document.getElementById('codeInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitCode();});
+  document.getElementById('codeInput').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();document.getElementById('codeErr').classList.remove('show');});
+  document.getElementById('buyLink').addEventListener('click',()=>{
+    window.open('https://wa.me/213XXXXXXXXX?text=Bonjour%2C+je+veux+un+code+Statia','_blank');
+  });
+}
+function updateUnlockBtn(){
+  const b=document.getElementById('unlockBtn');
+  if(UNLOCKED){b.textContent='🔓 Débloqué';b.classList.add('unlocked');}
+  else{b.textContent='🔒 Débloquer';b.classList.remove('unlocked');}
+}
+function openCodeModal(){document.getElementById('codeModal').classList.add('show');document.getElementById('codeInput').focus();}
+function closeCodeModal(){document.getElementById('codeModal').classList.remove('show');document.getElementById('codeErr').classList.remove('show');document.getElementById('codeInput').value='';}
+function submitCode(){
+  const v=document.getElementById('codeInput').value.trim().toUpperCase();
+  if(CODES.includes(v)){
+    UNLOCKED=true;
+    localStorage.setItem('statia_unlocked','1');
+    localStorage.setItem('statia_code',v);
+    updateUnlockBtn();
+    closeCodeModal();
+    renderStats(); renderPlanModules();
+  } else {
+    document.getElementById('codeErr').classList.add('show');
+  }
+}
+function isModuleFree(rankIndex){
+  return UNLOCKED || rankIndex===4; // rank #5 = index 4
+}
+
+// ══════════════════════════════════
+//  STATS
+// ══════════════════════════════════
+function renderStats(){
+  const el=document.getElementById('statsContent');
+  if(currentFaculte!=='Toutes' && isFacClosed(currentFaculte)){
+    el.innerHTML=`<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:40px 24px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:10px;">🔒</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:8px;">Saison terminée — ${currentFaculte}</div>
+      <div style="font-size:13px;color:var(--soft);line-height:1.6;">L'accès aux statistiques de cette faculté est fermé pour cette session.</div>
+    </div>`;
+    return;
+  }
+  const classifs=getClassifs(currentCat,currentYear);
+  const q=document.getElementById('searchInput').value.trim();
+  const fullMods=calcMods(classifs); // unfiltered, used to compute stable rank for lock logic
+  const rankOf=name=>fullMods.findIndex(m=>m.m===name);
+
+  if(statsView==='modules'){
+    let mods=fullMods;
+    if(q) mods=mods.filter(s=>s.m.toLowerCase().includes(q.toLowerCase()));
+    if(!mods.length){el.innerHTML=`<div class="no-res">Aucun résultat pour "${q}"</div>`;return;}
+
+    let html=`<table class="tbl">
+      <thead><tr><th>Module</th><th class="r">Q</th><th class="r">%</th></tr></thead>
+      <tbody>
+      ${mods.map((s)=>{
+        const rank=rankOf(s.m);
+        const free=isModuleFree(rank);
+        return `<tr data-mod="${esc(s.m)}" data-free="${free?1:0}" class="${rank<3?'top3':''} ${free?'':'locked-row'}">
+        <td class="mn"><span class="rank ${rank<3?'g':''}">${rank+1}</span>${hl(s.m,q)}</td>
+        <td class="r rg">${free?s.n:'•••'}</td>
+        <td class="r"><span class="mp ${rank<3?'hot':''} ${free?'':'blur-val'}">${s.pct}%</span>${free?'':'<span class="lock-ico">🔒</span>'}</td>
+      </tr>`;}).join('')}
+      </tbody></table>`;
+
+    if(statsSelectedMod && isModuleFree(rankOf(statsSelectedMod))){
+      const cours=calcCoursForMod(classifs,statsSelectedMod);
+      html+=`<div style="margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;">
+        <div style="padding:10px 14px;background:var(--paper2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-family:'Fraunces',serif;font-size:14px;font-weight:500;">${statsSelectedMod}</span>
+          <button id="closeDrill" style="border:none;background:none;cursor:pointer;color:var(--soft);font-size:15px;padding:2px 6px;">✕</button>
+        </div>
+        ${cours.map((c,i)=>`<div style="padding:9px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:${i<3?'var(--gold)':'var(--line)'};text-align:center;font-weight:${i<3?'600':'400'}">${i+1}</span>
+          <span style="font-size:12.5px;">${c.c}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--green);font-weight:500;">${c.pct}%</span>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    el.innerHTML=html;
+    el.querySelectorAll('tbody tr').forEach(row=>{
+      row.addEventListener('click',()=>{
+        if(row.dataset.free==='0'){openCodeModal();return;}
+        statsSelectedMod=row.dataset.mod;
+        document.querySelectorAll('tbody tr').forEach(r=>r.classList.remove('sel'));
+        row.classList.add('sel'); renderStats();
+        setTimeout(()=>document.getElementById('closeDrill')?.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+      });
+    });
+    document.getElementById('closeDrill')?.addEventListener('click',()=>{statsSelectedMod=null;renderStats();});
+
+  } else {
+    const mods=fullMods;
+    if(!statsSelectedMod){
+      let filtered=mods;
+      if(q) filtered=mods.filter(s=>s.m.toLowerCase().includes(q.toLowerCase()));
+      if(!filtered.length){el.innerHTML=`<div class="no-res">Aucun résultat pour "${q}"</div>`;return;}
+      el.innerHTML=`
+        <div style="font-size:12px;color:var(--soft);margin-bottom:6px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.04em;">Choisir un module</div>
+        <div class="pmod-list">
+          ${filtered.map(s=>{
+            const rank=rankOf(s.m); const free=isModuleFree(rank);
+            return `<div class="pmod-item ${free?'':'locked'}" data-mod="${esc(s.m)}" data-free="${free?1:0}">
+            <div class="pmod-name">${hl(s.m,q)} ${free?'':'<span class="lock-ico">🔒</span>'}</div>
+            <div class="pmod-meta">
+              <span class="pmod-freq">${s.pct}%</span>
+              <span class="pmod-arrow">›</span>
+            </div>
+          </div>`;}).join('')}
+        </div>`;
+      el.querySelectorAll('.pmod-item').forEach(item=>{
+        item.addEventListener('click',()=>{
+          if(item.dataset.free==='0'){openCodeModal();return;}
+          statsSelectedMod=item.dataset.mod;document.getElementById('searchInput').value='';renderStats();
+        });
+      });
+    } else if(!isModuleFree(rankOf(statsSelectedMod))){
+      statsSelectedMod=null; openCodeModal(); renderStats();
+    } else {
+      const cours=calcCoursForMod(classifs,statsSelectedMod);
+      const modPct=mods.find(m=>m.m===statsSelectedMod)?.pct||'0';
+      el.innerHTML=`
+        <button class="back-btn" id="statsBack">← Tous les modules</button>
+        <div style="margin-top:10px;">
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:500;">${statsSelectedMod}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--soft);margin-top:2px;">Fréquence globale : ${modPct}%</div>
+        </div>
+        <table class="tbl" style="margin-top:10px;">
+          <thead><tr><th>#</th><th>Cours</th><th class="r">%</th></tr></thead>
+          <tbody>
+          ${cours.map((c,i)=>`<tr>
+            <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:${i<3?'var(--gold)':'var(--faint)'};">${i+1}</td>
+            <td class="mn">${c.c}</td>
+            <td class="r"><span class="mp ${i<3?'hot':''}">${c.pct}%</span></td>
+          </tr>`).join('')}
+          </tbody>
+        </table>
+        ${cours.length===0?'<div class="no-res" style="margin-top:10px;">Aucun cours identifié</div>':''}`;
+      document.getElementById('statsBack').addEventListener('click',()=>{statsSelectedMod=null;renderStats();});
+    }
+  }
+}
+
+// ══════════════════════════════════
+//  PLANIFICATEUR
+// ══════════════════════════════════
+function renderPlanModules(){
+  planSelectedMod=null;
+  const el=document.getElementById('planContent');
+  if(currentFaculte!=='Toutes' && isFacClosed(currentFaculte)){
+    el.innerHTML=`<div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:40px 24px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:10px;">🔒</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:8px;">Saison terminée — ${currentFaculte}</div>
+      <div style="font-size:13px;color:var(--soft);line-height:1.6;">Le planificateur de cette faculté est fermé pour cette session.</div>
+    </div>`;
+    return;
+  }
+  const classifs=getClassifs(currentCat,'global');
+  const mods=calcMods(classifs);
+
+  el.innerHTML=`
+    <div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.05em;">Planificateur de révision</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:500;margin:5px 0 3px;">Choisir un module</div>
+      <div style="font-size:13px;color:var(--soft);">Sélectionne un module pour réviser ses cours avec la répétition espacée.</div>
+    </div>
+    <div class="pmod-list">
+      ${mods.map(s=>{
+        const cours=calcCoursForMod(classifs,s.m);
+        return `<div class="pmod-item" data-mod="${esc(s.m)}">
+          <div>
+            <div class="pmod-name">${s.m}</div>
+            <div class="pmod-count">${cours.length} cours · ${s.pct}%</div>
+          </div>
+          <div class="pmod-meta">
+            <span class="pmod-freq">${s.pct}%</span>
+            <span class="pmod-arrow">›</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  el.querySelectorAll('.pmod-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      planSelectedMod=item.dataset.mod;
+      renderPlanCours(planSelectedMod);
+    });
+  });
+}
+
+function renderPlanCours(mod){
+  const classifs=getClassifs(currentCat,'global');
+  const cours=calcCoursForMod(classifs,mod);
+
+  if(!planCourses[mod]){
+    planCourses[mod]=cours.map((c,i)=>({
+      id:mod+'_'+i, title:c.c, module:mod,
+      freq:c.pct+'%', freqVal:parseFloat(c.pct),
+      couches:[null,null,null,null,null], added:false
+    }));
+  }
+  renderPlanList(mod);
+}
+
+function renderPlanList(mod){
+  const el=document.getElementById('planContent');
+  let arr=[...planCourses[mod]];
+  if(sortMode==='freq') arr.sort((a,b)=>b.freqVal-a.freqVal);
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="back-btn" id="planBack">← Modules</button>
+    </div>
+    <div>
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:500;">${mod}</div>
+      <div style="font-size:12px;color:var(--soft);margin-top:2px;">${arr.length} cours à réviser</div>
+    </div>
+    <div class="add-bar">
+      <input type="text" id="addCourseInput" placeholder="Ajouter un cours personnel..."/>
+      <button class="add-btn" id="addCourseBtn" title="Ajouter">+</button>
+    </div>
+    <div class="controls">
+      <div class="seg" id="sortSeg">
+        <button class="${sortMode==='freq'?'on':''}" data-sort="freq">Par fréquence</button>
+        <button class="${sortMode==='manual'?'on':''}" data-sort="manual">Manuel</button>
+      </div>
+      <div class="sr-toggle" id="srToggle">
+        <span>Répétition espacée</span>
+        <div class="switch ${srOn?'on':''}" id="srSwitch"></div>
+      </div>
+    </div>
+    <div class="drag-hint ${sortMode==='manual'?'show':''}" id="dragHint">⠿ Maintiens et glisse pour changer l'ordre.</div>
+    <div class="plist ${sortMode==='manual'?'reorder-mode':''}" id="plist">
+      ${arr.map(c=>{
+        const dueIdx=c.couches.findIndex(x=>x===null);
+        const finished=dueIdx===-1;
+        let couchesHtml='';
+        c.couches.forEach((cc,i)=>{
+          if(cc){
+            couchesHtml+=`<div class="couche"><div class="cdot done">✓</div>
+              <div class="clabel cdone-info">Couche ${i+1}<span class="cdate"> · ${fmt(cc.date)}</span><span class="csupport">${cc.support}</span></div></div>`;
+          } else if(i===dueIdx){
+            const anim=(justRevised===c.id)?' reveal':'';
+            const pulse=(justRevised===c.id)?' pulse':'';
+            let dueTxt='';
+            if(srOn&&i>0){const dd=addDays(c.couches[i-1].date,INTERVALS[i-1]);dueTxt=`<span class="cdue-date${anim}">réviser le ${fmt(dd)}</span>`;}
+            else if(srOn&&i===0){dueTxt=`<span class="cdue-date${anim}">à commencer</span>`;}
+            couchesHtml+=`<div class="couche${pulse}"><div class="cdot due">${i+1}</div>
+              <div class="clabel">${dueTxt||('Couche '+(i+1))}</div>
+              <button class="crevise" data-id="${c.id}">Réviser</button></div>
+              <div class="picker" id="pick-${c.id}">
+                <div class="picker-q">Comment as-tu révisé ?</div>
+                <div class="picker-opts">
+                  <button data-id="${c.id}" data-s="Cours"><span class="pic-ic">📖</span>Cours</button>
+                  <button data-id="${c.id}" data-s="Résumé"><span class="pic-ic">📝</span>Résumé</button>
+                  <button data-id="${c.id}" data-s="QCM"><span class="pic-ic">❓</span>QCM</button>
+                </div>
+              </div>`;
+          } else {
+            couchesHtml+=`<div class="couche"><div class="cdot">${i+1}</div><div class="clabel cfuture">Couche ${i+1}</div></div>`;
+          }
+        });
+        return `<div class="course" draggable="${sortMode==='manual'}" data-id="${c.id}">
+          <div class="c-top">
+            <div class="handle">⠿</div>
+            <div class="c-titlewrap"><div class="c-title">${c.title}${c.added?'<span class="added-badge">Ajouté</span>':''}</div><div class="c-module">${c.module}</div></div>
+            <div class="c-freq">${c.freq}</div>
+            ${c.added?`<button class="del-course" data-id="${c.id}" title="Supprimer">✕</button>`:''}
+          </div>
+          ${finished?'<div class="done-badge">✓ Cours maîtrisé — 5 couches terminées</div>':`<div class="couches">${couchesHtml}</div>`}
+        </div>`;
+      }).join('')}
+    </div>
+    ${srOn?`<div class="legend-txt"><b>Couches</b> : chaque révision = une couche (1→5). La répétition espacée espace les sessions (3j, 1sem, 1mois, 3mois).</div>`:''}`;
+
+  justRevised=null;
+
+  document.getElementById('planBack').addEventListener('click',()=>{renderPlanModules();});
+
+  document.getElementById('addCourseBtn').addEventListener('click',()=>addCourse(mod));
+  document.getElementById('addCourseInput').addEventListener('keydown',e=>{if(e.key==='Enter')addCourse(mod);});
+
+  document.querySelectorAll('.del-course').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      planCourses[mod]=planCourses[mod].filter(c=>c.id!==b.dataset.id);
+      renderPlanList(mod);
+    });
+  });
+
+  document.getElementById('sortSeg').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    sortMode=b.dataset.sort;
+    document.getElementById('dragHint').classList.toggle('show',sortMode==='manual');
+    renderPlanList(mod);
+  });
+  document.getElementById('srToggle').addEventListener('click',()=>{
+    srOn=!srOn;
+    if(srOn&&!srExplained){srExplained=true;document.getElementById('srModal').classList.add('show');}
+    renderPlanList(mod);
+  });
+
+  document.querySelectorAll('.crevise').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      document.querySelectorAll('.picker.show').forEach(p=>p.classList.remove('show'));
+      document.getElementById('pick-'+b.dataset.id).classList.add('show');
+    });
+  });
+  document.querySelectorAll('.picker-opts button').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const c=planCourses[mod].find(x=>x.id===b.dataset.id);
+      const i=c.couches.findIndex(x=>x===null);
+      c.couches[i]={date:new Date(),support:b.dataset.s};
+      justRevised=c.id; renderPlanList(mod);
+    });
+  });
+
+  if(sortMode==='manual'){
+    let dragId=null;
+    const plist=document.getElementById('plist');
+    plist.querySelectorAll('.course').forEach(card=>{
+      card.addEventListener('dragstart',()=>{dragId=card.dataset.id;card.classList.add('dragging');});
+      card.addEventListener('dragend',()=>{card.classList.remove('dragging');plist.querySelectorAll('.course').forEach(c=>c.classList.remove('dragover'));});
+      card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('dragover');});
+      card.addEventListener('dragleave',()=>card.classList.remove('dragover'));
+      card.addEventListener('drop',e=>{
+        e.preventDefault();
+        const from=planCourses[mod].findIndex(x=>x.id===dragId);
+        const to=planCourses[mod].findIndex(x=>x.id===card.dataset.id);
+        const[m]=planCourses[mod].splice(from,1);planCourses[mod].splice(to,0,m);
+        renderPlanList(mod);
+      });
+    });
+  }
+
+  document.addEventListener('click',()=>document.querySelectorAll('.picker.show').forEach(p=>p.classList.remove('show')),{once:false});
+}
+
+function addCourse(mod){
+  const input=document.getElementById('addCourseInput');
+  const title=input.value.trim();
+  if(!title) return;
+  planCourses[mod].push({
+    id:mod+'_custom_'+Date.now(), title, module:mod,
+    freq:'—', freqVal:-1,
+    couches:[null,null,null,null,null], added:true
+  });
+  input.value='';
+  renderPlanList(mod);
+}
+</script>
+</body>
+</html>
